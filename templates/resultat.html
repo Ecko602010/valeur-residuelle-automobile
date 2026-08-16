@@ -1,0 +1,155 @@
+
+{% extends "base.html" %}
+
+{% block title %}Résultat de l'estimation{% endblock %}
+
+{% block content %}
+<section class="result-header">
+  <div>
+    <p class="eyebrow">Estimation terminée</p>
+    <h1>{{ vehicle.make_norm }} {{ vehicle.model_norm }}</h1>
+    <p class="lead">
+      Projection sur {{ result.duree_contrat_mois }} mois avec
+      {{ "{:,.0f}".format(result.kilometrage_annuel_km).replace(",", " ") }}
+      km par an.
+    </p>
+  </div>
+  <a class="button-secondary" href="{{ url_for('index') }}">
+    Nouvelle estimation
+  </a>
+</section>
+
+{% if result.extrapolation_temporelle %}
+<div class="alert alert-warning" role="alert">
+  <strong>Extrapolation temporelle.</strong>
+  <p>
+    L'année saisie dépasse {{ result.derniere_annee_donnees }}, dernière
+    année disponible dans le jeu d'entraînement. La prudence est renforcée.
+  </p>
+</div>
+{% endif %}
+
+{% if result.alerte_prix_acquisition %}
+<div class="alert alert-warning" role="alert">
+  <strong>Prix d'acquisition atypique.</strong>
+  <p>
+    Le prix saisi est très éloigné du prix de marché actuel estimé.
+    Vérifiez qu'il correspond bien au début du contrat simulé.
+  </p>
+</div>
+{% endif %}
+
+{% if result.garde_fou_applique %}
+<div class="alert alert-warning" role="alert">
+  <strong>Garde-fou appliqué.</strong>
+  <p>
+    Le coefficient brut produit par le modèle était hors de l'intervalle
+    autorisé. La valeur résiduelle a été bornée entre 5 % et 100 %.
+  </p>
+</div>
+{% endif %}
+
+<section class="metric-grid" aria-label="Principaux résultats">
+  <article class="metric-card metric-highlight">
+    <h2>Valeur résiduelle estimée</h2>
+    <p class="metric-value">
+      {{ "{:,.0f}".format(result.valeur_residuelle_estimee_eur).replace(",", " ") }} €
+    </p>
+    <p class="metric-subvalue">
+      {{ "{:.1f}".format(result.valeur_residuelle_estimee_pct) }} %
+      du prix d'acquisition
+    </p>
+  </article>
+
+  <article class="metric-card">
+    <h2>Dépréciation estimée</h2>
+    <p class="metric-value">
+      {{ "{:,.0f}".format(result.depreciation_estimee_eur).replace(",", " ") }} €
+    </p>
+  </article>
+
+  <article class="metric-card">
+    <h2>Prix de marché actuel prédit</h2>
+    <p class="metric-value">
+      {{ "{:,.0f}".format(result.prix_marche_actuel_predit_eur).replace(",", " ") }} €
+    </p>
+    {% if result.prix_marche_actuel_borne_basse_eur is defined %}
+    <p class="metric-subvalue">
+      Fourchette ajustée :
+      {{ "{:,.0f}".format(result.prix_marche_actuel_borne_basse_eur).replace(",", " ") }} €
+      à
+      {{ "{:,.0f}".format(result.prix_marche_actuel_borne_haute_eur).replace(",", " ") }} €
+    </p>
+    {% if result.prix_marche_actuel_intervalle_ajuste %}
+    <p class="metric-note">
+      La fourchette quantile a été élargie pour inclure l'estimation centrale.
+    </p>
+    {% endif %}
+    {% endif %}
+  </article>
+
+  <article class="metric-card">
+    <h2>Prix de marché futur prédit</h2>
+    <p class="metric-value">
+      {{ "{:,.0f}".format(result.prix_marche_futur_brut_predit_eur).replace(",", " ") }} €
+    </p>
+    {% if result.prix_marche_futur_borne_basse_eur is defined %}
+    <p class="metric-subvalue">
+      Fourchette ajustée :
+      {{ "{:,.0f}".format(result.prix_marche_futur_borne_basse_eur).replace(",", " ") }} €
+      à
+      {{ "{:,.0f}".format(result.prix_marche_futur_borne_haute_eur).replace(",", " ") }} €
+    </p>
+    {% if result.prix_marche_futur_intervalle_ajuste %}
+    <p class="metric-note">
+      La fourchette quantile a été élargie pour inclure l'estimation centrale.
+    </p>
+    {% endif %}
+    {% endif %}
+  </article>
+</section>
+
+<section class="panel">
+  <h2>Détail de la simulation</h2>
+  <dl class="detail-list">
+    <div>
+      <dt>Prix d'acquisition</dt>
+      <dd>
+        {{ "{:,.0f}".format(result.prix_acquisition_initial_eur).replace(",", " ") }} €
+      </dd>
+    </div>
+    <div>
+      <dt>Kilométrage actuel</dt>
+      <dd>
+        {{ "{:,.0f}".format(vehicle.mileage_km).replace(",", " ") }} km
+      </dd>
+    </div>
+    <div>
+      <dt>Kilométrage estimé en fin de contrat</dt>
+      <dd>
+        {{ "{:,.0f}".format(result.kilometrage_fin_contrat_km).replace(",", " ") }} km
+      </dd>
+    </div>
+    <div>
+      <dt>Coefficient brut de dépréciation</dt>
+      <dd>
+        {{ "{:.3f}".format(result.coefficient_depreciation_brut) }}
+      </dd>
+    </div>
+    <div>
+      <dt>Modèle utilisé</dt>
+      <dd>{{ model_name }}</dd>
+    </div>
+  </dl>
+</section>
+
+<section class="notice">
+  <h2>Interprétation</h2>
+  <p>
+    {{ result.hypothese }}. Cette estimation doit être complétée par
+    des données contractuelles réelles, l'état de restitution, les
+    sinistres, l'entretien et les conditions du marché au moment de la
+    revente.
+  </p>
+</section>
+{% endblock %}

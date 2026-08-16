@@ -1,0 +1,38 @@
+
+{% extends "base.html" %}
+
+{% block title %}Confidentialité{% endblock %}
+
+{% block content %}
+<article class="prose">
+  <h1>Confidentialité et protection des données</h1>
+
+  <h2>Données traitées</h2>
+  <p>
+    L'application utilise uniquement les caractéristiques techniques
+    du véhicule et les hypothèses financières nécessaires à la
+    simulation.
+  </p>
+
+  <h2>Données non demandées</h2>
+  <p>
+    Aucun nom, adresse, courriel, téléphone, numéro VIN, numéro
+    d'immatriculation ou autre donnée personnelle n'est nécessaire.
+  </p>
+
+  <h2>Conservation</h2>
+  <p>
+    Les informations saisies ne sont pas enregistrées dans une base
+    de données par cette version de l'application. Elles sont utilisées
+    uniquement pour calculer la réponse HTTP.
+  </p>
+
+  <h2>Limite</h2>
+  <p>
+    En cas de déploiement sur un hébergeur, les journaux techniques de
+    l'infrastructure peuvent contenir des métadonnées de connexion.
+    La politique de l'hébergeur doit être vérifiée avant une mise en
+    production.
+  </p>
+</article>
+{% endblock %}

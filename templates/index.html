@@ -1,0 +1,400 @@
+
+{% extends "base.html" %}
+
+{% block title %}Estimer une valeur résiduelle{% endblock %}
+
+{% block content %}
+<section class="hero">
+  <div>
+    <p class="eyebrow">Modèle CatBoost optimisé</p>
+    <h1>Estimer le prix futur et la valeur résiduelle d'un véhicule</h1>
+    <p class="lead">
+      Renseignez les caractéristiques du véhicule et les hypothèses du
+      contrat. Les champs marqués d'un astérisque sont obligatoires.
+    </p>
+  </div>
+  <aside class="notice" aria-label="Limite méthodologique">
+    <strong>À savoir</strong>
+    <p>
+      Le résultat est un proxy de valeur résiduelle à marché constant.
+      Il ne remplace pas une expertise ni une décision contractuelle.
+    </p>
+  </aside>
+</section>
+
+<div class="demo-toolbar" aria-label="Exemple de démonstration">
+  <button
+    type="button"
+    class="button-secondary"
+    id="load-demo"
+  >
+    {{ options.demo_label }}
+  </button>
+  <p>
+    Cet exemple est sélectionné dans le jeu de données avec un prix
+    d'acquisition cohérent avec le prix de marché observé.
+  </p>
+</div>
+
+{% if error %}
+<div class="alert alert-error" role="alert" tabindex="-1" id="form-error">
+  <strong>Le formulaire contient une erreur.</strong>
+  <p>{{ error }}</p>
+</div>
+{% endif %}
+
+<form
+  method="post"
+  action="{{ url_for('estimate') }}"
+  class="estimation-form"
+  id="estimation-form"
+>
+  <fieldset>
+    <legend>1. Identification du véhicule</legend>
+
+    <div class="form-grid">
+      <div class="field">
+        <label for="make_norm">Marque *</label>
+        <select id="make_norm" name="make_norm" required>
+          <option value="">Sélectionner une marque</option>
+          {% for value in options.brands %}
+          <option
+            value="{{ value }}"
+            {% if form_data.get('make_norm') == value %}selected{% endif %}
+          >{{ value }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="model_norm">Modèle *</label>
+        <select
+          id="model_norm"
+          name="model_norm"
+          required
+          data-selected="{{ form_data.get('model_norm', '') }}"
+        >
+          <option value="">Sélectionner d'abord une marque</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="country_code">Pays du marché *</label>
+        <select id="country_code" name="country_code" required>
+          <option value="">Sélectionner un pays</option>
+          {% for value in options.countries %}
+          <option
+            value="{{ value }}"
+            {% if form_data.get('country_code') == value %}selected{% endif %}
+          >{{ value }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="vehicle_condition">État du véhicule</label>
+        <select id="vehicle_condition" name="vehicle_condition">
+          <option value="">Non renseigné</option>
+          {% for value in options.vehicle_conditions %}
+          <option
+            value="{{ value }}"
+            {% if form_data.get('vehicle_condition') == value %}selected{% endif %}
+          >{{ value }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend>2. Âge et kilométrage</legend>
+
+    <div class="form-grid">
+      <div class="field">
+        <label for="model_year">Année du modèle *</label>
+        <input
+          id="model_year"
+          name="model_year"
+          type="number"
+          min="1950"
+          max="2100"
+          step="1"
+          required
+          value="{{ form_data.get('model_year', options.numeric_defaults.get('model_year', '')) }}"
+        >
+      </div>
+
+      <div class="field">
+        <label for="observation_year">Année d'observation *</label>
+        <input
+          id="observation_year"
+          name="observation_year"
+          type="number"
+          min="1980"
+          max="2100"
+          step="1"
+          required
+          value="{{ form_data.get('observation_year', options.dataset_observation_year_max) }}"
+        >
+        <p class="field-help" id="observation-year-help">
+          Les données d'entraînement s'arrêtent principalement en
+          {{ options.dataset_observation_year_max }}. Une année ultérieure
+          constitue une extrapolation et sera signalée dans le résultat.
+        </p>
+      </div>
+
+      <div class="field">
+        <label for="mileage_km">Kilométrage actuel *</label>
+        <div class="input-suffix">
+          <input
+            id="mileage_km"
+            name="mileage_km"
+            type="number"
+            min="0"
+            max="1000000"
+            step="1"
+            required
+            value="{{ form_data.get('mileage_km', options.numeric_defaults.get('mileage_km', '')) }}"
+          >
+          <span>km</span>
+        </div>
+      </div>
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend>3. Caractéristiques techniques</legend>
+
+    <div class="form-grid">
+      <div class="field">
+        <label for="fuel">Énergie</label>
+        <select id="fuel" name="fuel">
+          <option value="">Non renseigné</option>
+          {% for value in options.fuels %}
+          <option
+            value="{{ value }}"
+            {% if form_data.get('fuel') == value %}selected{% endif %}
+          >{{ value }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="fuel_type_primary">Énergie EPA principale</label>
+        <select id="fuel_type_primary" name="fuel_type_primary">
+          <option value="">Non renseigné</option>
+          {% for value in options.fuel_types_primary %}
+          <option
+            value="{{ value }}"
+            {% if form_data.get('fuel_type_primary') == value %}selected{% endif %}
+          >{{ value }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="transmission">Transmission</label>
+        <select id="transmission" name="transmission">
+          <option value="">Non renseignée</option>
+          {% for value in options.transmissions %}
+          <option
+            value="{{ value }}"
+            {% if form_data.get('transmission') == value %}selected{% endif %}
+          >{{ value }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="body_type">Carrosserie</label>
+        <select id="body_type" name="body_type">
+          <option value="">Non renseignée</option>
+          {% for value in options.body_types %}
+          <option
+            value="{{ value }}"
+            {% if form_data.get('body_type') == value %}selected{% endif %}
+          >{{ value }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="vehicle_class">Catégorie de véhicule</label>
+        <select id="vehicle_class" name="vehicle_class">
+          <option value="">Non renseignée</option>
+          {% for value in options.vehicle_classes %}
+          <option
+            value="{{ value }}"
+            {% if form_data.get('vehicle_class') == value %}selected{% endif %}
+          >{{ value }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="color">Couleur</label>
+        <select id="color" name="color">
+          <option value="">Non renseignée</option>
+          {% for value in options.colors %}
+          <option
+            value="{{ value }}"
+            {% if form_data.get('color') == value %}selected{% endif %}
+          >{{ value }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="engine_displacement_l">Cylindrée</label>
+        <div class="input-suffix">
+          <input
+            id="engine_displacement_l"
+            name="engine_displacement_l"
+            type="number"
+            min="0"
+            max="15"
+            step="0.1"
+            value="{{ form_data.get('engine_displacement_l', options.numeric_defaults.get('engine_displacement_l', '')) }}"
+          >
+          <span>L</span>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="combined_mpg">Consommation combinée EPA</label>
+        <div class="input-suffix">
+          <input
+            id="combined_mpg"
+            name="combined_mpg"
+            type="number"
+            min="0"
+            max="300"
+            step="0.1"
+            value="{{ form_data.get('combined_mpg', options.numeric_defaults.get('combined_mpg', '')) }}"
+          >
+          <span>MPG</span>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="co2_tailpipe_g_per_mile">Émissions de CO₂</label>
+        <div class="input-suffix">
+          <input
+            id="co2_tailpipe_g_per_mile"
+            name="co2_tailpipe_g_per_mile"
+            type="number"
+            min="0"
+            max="3000"
+            step="0.1"
+            value="{{ form_data.get('co2_tailpipe_g_per_mile', options.numeric_defaults.get('co2_tailpipe_g_per_mile', '')) }}"
+          >
+          <span>g/mile</span>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="electric_range_miles">Autonomie électrique</label>
+        <div class="input-suffix">
+          <input
+            id="electric_range_miles"
+            name="electric_range_miles"
+            type="number"
+            min="0"
+            max="1000"
+            step="0.1"
+            value="{{ form_data.get('electric_range_miles', options.numeric_defaults.get('electric_range_miles', '')) }}"
+          >
+          <span>miles</span>
+        </div>
+      </div>
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend>4. Hypothèses du contrat</legend>
+
+    <div class="form-grid">
+      <div class="field">
+        <label for="initial_acquisition_price_eur">
+          Prix d'acquisition au début de la simulation *
+        </label>
+        <div class="input-suffix">
+          <input
+            id="initial_acquisition_price_eur"
+            name="initial_acquisition_price_eur"
+            type="number"
+            min="1"
+            max="2000000"
+            step="1"
+            required
+            value="{{ form_data.get('initial_acquisition_price_eur', '') }}"
+          >
+          <span>€</span>
+        </div>
+        <p class="field-help">
+          Saisissez la valeur payée au début du contrat simulé, et non
+          le prix catalogue historique d'un véhicule déjà ancien.
+        </p>
+      </div>
+
+      <div class="field">
+        <label for="contract_duration_months">
+          Durée du contrat *
+        </label>
+        <select
+          id="contract_duration_months"
+          name="contract_duration_months"
+          required
+        >
+          {% for duration in [12, 24, 36, 48, 60, 72] %}
+          <option
+            value="{{ duration }}"
+            {% if form_data.get('contract_duration_months', '36')|string == duration|string %}selected{% endif %}
+          >{{ duration }} mois</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="annual_mileage_km">
+          Kilométrage annuel prévu *
+        </label>
+        <div class="input-suffix">
+          <input
+            id="annual_mileage_km"
+            name="annual_mileage_km"
+            type="number"
+            min="0"
+            max="100000"
+            step="500"
+            required
+            value="{{ form_data.get('annual_mileage_km', '15000') }}"
+          >
+          <span>km/an</span>
+        </div>
+      </div>
+    </div>
+  </fieldset>
+
+  <div class="form-actions">
+    <button type="submit" class="button-primary">
+      Calculer l'estimation
+    </button>
+    <button type="reset" class="button-secondary">
+      Réinitialiser
+    </button>
+  </div>
+
+  <p class="form-note">
+    Le formulaire ne demande ni nom, ni adresse, ni numéro d'immatriculation,
+    ni numéro VIN.
+  </p>
+</form>
+
+<script id="models-data" type="application/json">
+  {{ options.models_by_brand | tojson }}
+</script>
+<script id="demo-data" type="application/json">
+  {{ options.demo_example | tojson }}
+</script>
+{% endblock %}

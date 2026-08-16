@@ -1,0 +1,22 @@
+{
+  "make_norm": "volkswagen",
+  "model_norm": "golf",
+  "country_code": "DEU",
+  "vehicle_condition": "",
+  "fuel": "Diesel",
+  "transmission": "Automatic",
+  "color": "",
+  "body_type": "",
+  "fuel_type_primary": "Regular Gasoline",
+  "vehicle_class": "Compact Cars",
+  "model_year": 2020,
+  "observation_year": 2021,
+  "mileage_km": 25773.0,
+  "engine_displacement_l": 1.4,
+  "combined_mpg": 31.0,
+  "co2_tailpipe_g_per_mile": 285.0,
+  "electric_range_miles": 0.0,
+  "initial_acquisition_price_eur": 24400,
+  "contract_duration_months": 36,
+  "annual_mileage_km": 15000
+}

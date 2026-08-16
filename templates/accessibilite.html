@@ -1,0 +1,33 @@
+
+{% extends "base.html" %}
+
+{% block title %}Accessibilité{% endblock %}
+
+{% block content %}
+<article class="prose">
+  <h1>Déclaration d'accessibilité</h1>
+
+  <p>
+    L'application a été conçue pour être utilisable au clavier et avec
+    les technologies d'assistance.
+  </p>
+
+  <h2>Mesures mises en place</h2>
+  <ul>
+    <li>structure HTML sémantique ;</li>
+    <li>libellé explicite pour chaque champ ;</li>
+    <li>ordre de tabulation logique ;</li>
+    <li>lien d'évitement vers le contenu principal ;</li>
+    <li>messages d'erreur annoncés avec le rôle d'alerte ;</li>
+    <li>contrastes renforcés ;</li>
+    <li>aucune information transmise uniquement par la couleur ;</li>
+    <li>mise en page responsive et zoomable.</li>
+  </ul>
+
+  <h2>Améliorations possibles</h2>
+  <p>
+    Un audit RGAA complet devra être réalisé avant un déploiement
+    institutionnel.
+  </p>
+</article>
+{% endblock %}
