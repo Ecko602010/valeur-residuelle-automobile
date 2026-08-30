@@ -84,20 +84,7 @@ Content-Type: application/json
 
 Le corps JSON reprend les champs du formulaire.
 
-## Déploiement Render
 
-1. Placer ce dossier dans un dépôt Git.
-2. Vérifier que le fichier modèle est bien présent.
-3. Créer un nouveau Web Service sur Render.
-4. Utiliser `render.yaml` ou :
-   - Build command : `pip install -r requirements.txt`
-   - Start command :
-     `gunicorn app:app --bind 0.0.0.0:$PORT --workers 1 --threads 4 --timeout 180`
-5. Vérifier l'URL `/health`.
-6. Tester plusieurs navigateurs.
-
-Si le modèle dépasse la taille autorisée par le dépôt Git, utiliser
-Git LFS ou un stockage d'artefacts sécurisé.
 
 ## Protection des données
 
