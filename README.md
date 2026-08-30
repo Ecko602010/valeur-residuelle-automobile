@@ -18,6 +18,17 @@ La fourchette affichée est construite à partir des modèles quantiles puis
 ajustée, si nécessaire, afin de toujours contenir la prédiction centrale.
 L'application signale cet ajustement à l'utilisateur.
 
+## Résultats
+
+Le modèle final retenu est un CatBoost optimisé.
+
+| Métrique | Résultat |
+|---|---:|
+| MAE | ~2 590 € |
+| RMSE | ~4 544 € |
+| R² | ~0,85 |
+| WAPE | ~18,35 % |
+
 ## Prérequis
 
 - Python 3.12 recommandé ;
@@ -114,6 +125,8 @@ app.py           Serveur Flask et validation
 model_utils.py   Préparation des variables et prédiction
 templates/       Pages HTML
 static/          CSS et JavaScript
+
+
 tests/           Tests fonctionnels
 models/          Modèle entraîné
 data/            Options du formulaire
